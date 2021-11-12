@@ -1,15 +1,63 @@
-version: 2.1
+commands:
+    greet:
+        description: |
+            This command echos "Hello World" using file inclusion.
+        parameters:
+            to:
+                default: World
+                description: Hello to whom?
+                type: string
+        steps:
+            - run:
+                command: |
+                    Greet() {
+                        echo Hello "${PARAM_TO}"
+                    }
 
-description: >
-  Sample orb description
-# What will your orb allow users to accomplish?
-# Descriptions should be short, simple, and informative.
+                    # Will not run if sourced for bats-core tests.
+                    # View src/tests for more information.
+                    ORB_TEST_ENV="bats-core"
+                    if [ "${0#*$ORB_TEST_ENV}" == "$0" ]; then
+                        Greet
+                    fi
+                environment:
+                    PARAM_TO: <<parameters.to>>
+                name: Hello Greeting
+executors:
+    default:
+        description: |
+            This is a sample executor using Docker and Node.
+        docker:
+            - image: cimg/node:<<parameters.tag>>
+        parameters:
+            tag:
+                default: lts
+                description: |
+                    Pick a specific circleci/node image variant: https://hub.docker.com/r/cimg/node/tags
+                type: string
+jobs:
+    hello:
+        description: |
+            Sample description
+        executor: default
+        parameters:
+            to:
+                default: World
+                description: Hello to whom?
+                type: string
+        steps:
+            - greet:
+                to: << parameters.to >>
+examples:
+    example:
+        description: |
+            Sample example description.
+        usage:
+            version: "2.1"
+            orbs:
+                <orb-name>: <namespace>/<orb-name>@1.2.3
+            workflows:
+                use-my-orb:
+                    jobs:
+                        - <orb-name>/<job-name>
 
-# This information will be displayed in the orb registry and is not mandatory.
-display:
-  home_url: "https://www.website.com/docs"
-  source_url: "https://www.github.com/EXAMPLE_ORG/EXAMPLE_PROJECT"
-
-# If your orb requires other orbs, you can import them like this. Otherwise remove the "orbs" stanza.
-# orbs:
-#  hello: circleci/hello-build@0.0.5
